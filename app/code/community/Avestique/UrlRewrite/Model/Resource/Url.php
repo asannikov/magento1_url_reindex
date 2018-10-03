@@ -30,6 +30,8 @@ class Avestique_UrlRewrite_Model_Resource_Url extends Mage_Catalog_Model_Resourc
 
     protected $cnt = 0;
 
+    protected $_lastInsert = 0;
+
     /**
      * Save category attribute
      *
@@ -163,7 +165,7 @@ class Avestique_UrlRewrite_Model_Resource_Url extends Mage_Catalog_Model_Resourc
         $result = $row[0];
         $row = $row['row'];
 
-        \Mage::app()->getCache()->save($row['request_path'], $row['data'], [
+        \Mage::app()->getCache()->save($row['data'], $row['request_path'], [
             self::URL_REWRITE_CACHE_TAG
         ]);
 
@@ -174,17 +176,19 @@ class Avestique_UrlRewrite_Model_Resource_Url extends Mage_Catalog_Model_Resourc
     /**
      * @return $this
      */
-    public function readPaths()
+    public function readPaths($useLastInsert = false)
     {
-        if (empty($this->_cacheFlag)) {
+        if (empty($this->_cacheFlag) || $useLastInsert) {
             /** @var Magento_Db_Adapter_Pdo_Mysql $adapter */
             $adapter = $this->_getWriteAdapter();
 
-            $lastId = 0;
+            $lastId = $this->_lastInsert ?: 0;
 
             $done = 0;
 
-            \Mage::app()->getCache()->clean();
+            if (!$lastId) {
+                \Mage::app()->getCache()->clean();
+            }
 
             do {
                 $select = $adapter->select()
@@ -204,6 +208,7 @@ class Avestique_UrlRewrite_Model_Resource_Url extends Mage_Catalog_Model_Resourc
                 ), [$result]);
 
                 if ($lastId == $result->lastnum) {
+                    $this->_lastInsert = $lastId;
                     break;
                 }
 
@@ -232,6 +237,8 @@ class Avestique_UrlRewrite_Model_Resource_Url extends Mage_Catalog_Model_Resourc
 
         foreach ($paths as $path) {
             if (Mage::app()->getCache()->load($path . '|' . $storeId)) {
+                $data[] = $path;
+            } else if (isset($this->_inserts[$path . '|' . $storeId])) {
                 $data[] = $path;
             }
         }
@@ -282,12 +289,16 @@ class Avestique_UrlRewrite_Model_Resource_Url extends Mage_Catalog_Model_Resourc
 
         try {
             if (empty($rewriteData['category_id'])) {
-                $this->_inserts[] = $rewriteData;
+                $this->_inserts[$rewriteData['request_path'] . '|' . $rewriteData['store_id']] = $rewriteData;
 
                 if (count($this->_inserts) >= $this->_productLimit) {
                     $this->cnt++;
 
+                    var_dump($this->cnt * $this->_productLimit);
+
                     $adapter->insertOnDuplicate($this->getMainTable(), $this->_inserts);
+
+                    $this->readPaths(true);
 
                     $this->_inserts = [];
                 }

@@ -13,15 +13,15 @@ Description
 -----------
 Definitely you ever had a problem with table core_url_rewrite indexing if you have large catalog with several thousand skus.
 
-The bottleneck is along query for getting rewrite data for each product. Each query takes about 0.02 msec. It means that reindexing will take at least 4 minutes for each 10000 skus only for getting rewrite product data.
+The bottleneck is single query for getting rewrite data for each product. Each query takes about 0.02 msec. It means that reindexing will take at least 4 minutes for each 10000 skus only for getting rewrite product data.
 
 Lets assume you have 200k skus in the catalog. If you sum up the total evaluation for each product then it will take forever.
 
-There is the same problem for the category rewrites. This extention will help you to solve this problem.
+There is the same problem for the category rewrites. This extension will help you to solve this problem.
 
 FAQ
 ------------
-1. Which is main concept to solve this problem?
+1. What is the main concept to solve this problem?
    
    It accumulates all current data from core_url_rewrite in Redis cache before the reindexing and accumulates insert queries and runs it by portions after that.
    
@@ -32,12 +32,12 @@ FAQ
 3. How does optimization work for category rewrites?
 
     Uses rewrite cache to get the quick data but there is no pocket inserts for categories. Each category has one insert query. But it generates an array of inserts for url/path category attribute values.
-    It works a bit slower than for the product reindexing. In my case for 10000 categories it takes about 7-10 minutes.
+    It works a bit slower than for the product reindexing. 
 
 4. Which options are there?
 
     There are two optons how to improve performance:
-    * You can reduce an amount of records if to disable product/category mapping (catalog_category_product). Set <code>filter_product_category_index</code> as 0 in global xml section to disable it. By default its enabled. Do not forget to set the module dependency. 
+    * You can reduce an amount of records by disabling product/category mapping (catalog_category_product). Set <code>filter_product_category_index</code> as 0 in global xml section to disable it. By default its enabled. Do not forget to set the module dependency. 
     * You can filter rewrite generation by the product types. Add this code to global xml section to generate rewrites only for grouped and simple products: 
         ~~~~~~ 
         <filter_product_type_index>
@@ -49,12 +49,16 @@ FAQ
         ~~~~~~
         By default all product types are taking a part in the reindexing. 
                                                                                                                 
-5. Why I have to use Mage_Cache_Backend_Redis cache?
+5. Why do I have to use Mage_Cache_Backend_Redis cache?
 
-   This is fastest way how to store the data and to read it quick back. If you would you standard magento cache it would write thousands of cache files only for this reindexing.
-6. Does this extention flush the cache automatically?
+   This is the fastest way to store the data and to read it quick back. If you would use standard magento cache it would write thousands of cache files only for this reindexing.
+6. Does this extension flush the cache automatically?
 
-   Yes. It cleans the cache before reading core_url_rewrite table. You can use tags to filter the cache but its quite risky to get RAM runs out of. 
+   Yes. It cleans the cache before reading core_url_rewrite table. You can use tags to filter the cache but it's quite risky to get RAM runs out of. 
+
+7. How long does it run?
+ 
+   I tested it with large DB but without catalog-product mapping. In my case it takes about 7-10 minutes for 10000 categories. And about 20 minutes for 200k skus. 
 
 Compatibility
 -------------

@@ -2,6 +2,50 @@
 
 class Avestique_UrlRewrite_Model_Url extends Mage_Catalog_Model_Url
 {
+    protected $_cnt = 0;
+
+    /**
+     * Refresh all rewrite urls for some store or for all stores
+     * Used to make full reindexing of url rewrites
+     *
+     * @param int $storeId
+     * @return Mage_Catalog_Model_Url
+     */
+    public function refreshRewrites($storeId = null)
+    {
+        $this->refreshRewritesCategories($storeId);
+        $this->refreshRewritesProducts($storeId);
+
+        return $this;
+    }
+
+
+    protected function refreshRewritesCategories($storeId = null)
+    {
+        if (is_null($storeId)) {
+            foreach ($this->getStores() as $store) {
+                $this->refreshRewritesCategories($store->getId());
+            }
+            return $this;
+        }
+
+        $this->clearStoreInvalidRewrites($storeId);
+        $this->refreshCategoryRewrite($this->getStores($storeId)->getRootCategoryId(), $storeId, false);
+    }
+
+    protected function refreshRewritesProducts($storeId = null)
+    {
+        if (is_null($storeId)) {
+            foreach ($this->getStores() as $store) {
+                $this->refreshRewritesProducts($store->getId());
+            }
+            return $this;
+        }
+
+        $this->refreshProductRewrites($storeId);
+        $this->getResource()->clearCategoryProduct($storeId);
+    }
+
     /**
      * Refresh category rewrite
      *
@@ -186,10 +230,10 @@ class Avestique_UrlRewrite_Model_Url extends Mage_Catalog_Model_Url
      */
     protected function _refreshProductRewrite(Varien_Object $product, Varien_Object $category)
     {
+
         if ($category->getId() == $category->getPath()) {
             return $this;
         }
-
         if ($product->getUrlKey() == '') {
             $urlKey = $this->getProductModel()->formatUrlKey($product->getName());
         }
