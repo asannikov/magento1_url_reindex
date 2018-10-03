@@ -1,0 +1,17 @@
+{
+  "name": "avestique/url_rewrite_optimization",
+  "type": "magento-module",
+  "license": "OSL-3.0",
+  "description": "Helps to speed up the table core_url_rewrite reindex process in several times",
+  "homepage": "https://github.com/avestique/magento1_url_reindex",
+  "authors": [
+    {
+      "name": "Avestique",
+      "email": "developer@avestique.ru"
+    }
+  ],
+  "require": {
+    "php": ">=7.0",
+    "magento-hackathon/magento-composer-installer": "*"
+  }
+}

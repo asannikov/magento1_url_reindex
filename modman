@@ -1,0 +1,3 @@
+app/etc/modules/Avestique_UrlRewrite.xml app/etc/modules/Avestique_UrlRewrite.xml
+app/code/community/Avestique/UrlRewrite app/code/community/Avestique/UrlRewrite
+shell/url-reindex.php shell/url-reindex.php

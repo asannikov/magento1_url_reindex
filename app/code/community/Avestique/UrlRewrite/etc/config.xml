@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<config>
+    <modules>
+        <Avestique_UrlRewrite>
+            <version>0.1.0</version>
+        </Avestique_UrlRewrite>
+    </modules>
+
+    <global>
+        <helpers>
+            <av_urlrewrite>
+                <class>Avestique_UrlRewrite_Helper</class>
+            </av_urlrewrite>
+        </helpers>
+        <models>
+            <av_urlrewrite>
+                <class>Avestique_UrlRewrite_Model</class>
+            </av_urlrewrite>
+            <catalog>
+                <rewrite>
+                    <url>Avestique_UrlRewrite_Model_Url</url>
+                </rewrite>
+            </catalog>
+            <catalog_resource>
+                <rewrite>
+                    <url>Avestique_UrlRewrite_Model_Resource_Url</url>
+                </rewrite>
+            </catalog_resource>
+        </models>
+
+        <filter_product_category_index>1</filter_product_category_index>
+    </global>
+</config>
